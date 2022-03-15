@@ -1,7 +1,7 @@
 from django.db import models
 
 class User(models.Model):
-    email = models.CharField('Email of the user', max_length=100, null=False)
+    email = models.CharField('Email of the user', max_length=100, null=False, unique=True)
     password = models.CharField('Password of the user', max_length=100, null=False)
     usertype = models.CharField('Type of the user', max_length=10, null=False)
     lastlogin = models.DateTimeField('Type of the user', max_length=10, null=False)
