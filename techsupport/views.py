@@ -1,10 +1,10 @@
 from datetime import datetime
 from django.shortcuts import render
-from django.http import HttpResponse
-from techsupport.models import User, ChatMessages, Tickets
+from django.http import HttpResponse, JsonResponse
+from techsupport.models import User, ChatMessages, Tickets, Devices, Media
 import json
 from django.views.decorators.csrf import csrf_exempt
-
+from django.forms.models import model_to_dict
 
 @csrf_exempt
 def register(request):
@@ -91,3 +91,19 @@ def sendmessage(request):
         else:
             return HttpResponse(400)
 
+def getticketuser(request):
+    if request.method == "GET":
+        try:
+            id = request.GET.get('ticketid', '')
+            data = list(Tickets.objects.filter(pk=id).values())
+            data[0]['createdBy_id'] = list(User.objects.filter(pk=data[0]['createdBy_id']).values())
+            if data[0]['assignedTo_id']:
+                data[0]['assignedTo_id'] = list(User.objects.filter(pk=data[0]['assignedTo_id']).values())
+            data[0]['deviceType_id'] = list(Devices.objects.filter(pk=data[0]['deviceType_id']).values())
+            if data[0]['solutionVideo_id']:
+                data[0]['solutionVideo_id'] = list(Media.objects.filter(pk=data[0]['solutionVideo_id']).values())
+            if data[0]['image_id']:
+                data[0]['image_id'] = list(Media.objects.filter(pk=data[0]['image_id']).values())
+            return JsonResponse(data, safe=False)
+        except:
+            return HttpResponse(400)
