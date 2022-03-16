@@ -107,3 +107,20 @@ def getticketuser(request):
             return JsonResponse(data, safe=False)
         except:
             return HttpResponse(400)
+
+def gettickets(request):
+    if request.method == "GET":
+        try:
+            data = list(Tickets.objects.all().values())
+            for x in data:
+                x['createdBy_id'] = list(User.objects.filter(pk=x['createdBy_id']).values())
+                if x['assignedTo_id']:
+                    x['assignedTo_id'] = list(User.objects.filter(pk=x['assignedTo_id']).values())
+                x['deviceType_id'] = list(Devices.objects.filter(pk=x['deviceType_id']).values())
+                if x['solutionVideo_id']:
+                    x['solutionVideo_id'] = list(Media.objects.filter(pk=x['solutionVideo_id']).values())
+                if x['image_id']:
+                    x['image_id'] = list(Media.objects.filter(pk=x['image_id']).values())
+            return JsonResponse(data, safe=False)
+        except:
+            return HttpResponse(400)
