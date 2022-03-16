@@ -24,7 +24,7 @@ class Devices(models.Model):
 class Tickets(models.Model):
     name = models.CharField('Name of the ticket', max_length=100, null=False)
     createdBy = models.ForeignKey(User, on_delete=models.CASCADE, null=False, related_name = 'createdBy')
-    assignedTo = models.ForeignKey(User, on_delete=models.CASCADE, null=False, related_name = 'assignedTo')
+    assignedTo = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name = 'assignedTo')
     deviceType = models.ForeignKey(Devices, on_delete=models.CASCADE)
     issueType = models.CharField('Type of the issue', max_length=100, null=False)
     description = models.CharField('Description of the issue', max_length=10000, null=False)

@@ -8,4 +8,5 @@ urlpatterns = [
     path('sendmessage', views.sendmessage, name='sendmessage'),
     path('getticketuser', views.getticketuser, name='getticketuser'),
     path('gettickets', views.gettickets, name='gettickets'),
+    path('deleteticket', views.deleteTicket, name='deleteTicket'),
 ]

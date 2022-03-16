@@ -124,3 +124,12 @@ def gettickets(request):
             return JsonResponse(data, safe=False)
         except:
             return HttpResponse(400)
+@csrf_exempt
+def deleteTicket(request):
+    if request.method == "DELETE":
+        try:
+            id = request.GET.get('ticketid', '')
+            Tickets.objects.get(pk=id).delete()
+            return HttpResponse(204)
+        except:
+            return HttpResponse(400)
