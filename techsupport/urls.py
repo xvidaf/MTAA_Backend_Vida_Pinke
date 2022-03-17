@@ -11,5 +11,6 @@ urlpatterns = [
     path('getticketadmin', views.getticketadmin, name='getticketadmin'),
     path('gettickets', views.gettickets, name='gettickets'),
     path('getmessages', views.getmessages, name='getmessages'),
+    path('updateticket', views.updateticket, name='updateticket'),
     path('deleteticket', views.deleteTicket, name='deleteTicket'),
 ]

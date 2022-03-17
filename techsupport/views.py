@@ -215,6 +215,47 @@ def getmessages(request):
             return HttpResponse(400)
 
 @csrf_exempt
+def updateticket(request):
+    if request.method == "PUT":
+        try:
+            j = json.loads(request.body)
+            try:
+                ticketid = j['ticketid']
+            except:
+                ticketid = False
+
+            try:
+                stage = j['stage']
+            except:
+                stage = False
+
+            try:
+                complete = j['complete']
+            except:
+                complete = False
+
+            try:
+                solutiontext = j['solutiontext']
+            except:
+                solutiontext = False
+
+            try:
+                solutionvideo = j['solutionvideo']
+            except:
+                solutionvideo = False
+
+            ticket = Tickets.objects.get(pk=ticketid)
+            ticket.stage = stage
+            ticket.complete = complete
+            ticket.solutionText = solutiontext
+            if solutionvideo:
+                ticket.solutionVideo = Media.objects.get(pk=solutionvideo)
+            ticket.save()
+            return HttpResponse(204)
+        except:
+            return HttpResponse(400)
+
+@csrf_exempt
 def deleteTicket(request):
     if request.method == "DELETE":
         try:
