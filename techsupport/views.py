@@ -91,6 +91,60 @@ def sendmessage(request):
         else:
             return HttpResponse(400)
 
+@csrf_exempt
+def createticket(request):
+    if request.method == "POST":
+        j = json.loads(request.body)
+
+        try:
+            name = j['name']
+        except:
+            name = False
+
+        try:
+            device_id = j['device_id']
+        except:
+            device_id = False
+
+        try:
+            createdby_id = j['createdby_id']
+        except:
+            createdby_id = False
+
+        try:
+            issuetype = j['issuetype']
+        except:
+            issuetype = False
+
+        try:
+            description = j['description']
+        except:
+            description = False
+
+        try:
+            image_id = j['image_id']
+        except:
+            image_id = False
+
+        if name and device_id and createdby_id and issuetype and description and image_id:
+            try:
+                ticket = Tickets(name=name, deviceType=Devices.objects.get(pk=device_id), createdBy=User.objects.get(pk=createdby_id),
+                                       issueType= issuetype, description=description, stage=1, complete=False, image=Media.objects.get(pk=image_id))
+                ticket.save()
+                return HttpResponse(200)
+            except:
+                return HttpResponse(400)
+        elif name and device_id and createdby_id and issuetype and description:
+            try:
+                ticket = Tickets(name=name, deviceType=Devices.objects.get(pk=device_id), createdBy=User.objects.get(pk=createdby_id),
+                                       issueType= issuetype, description=description, stage=1, complete=False)
+                ticket.save()
+                return HttpResponse(200)
+            except:
+                return HttpResponse(400)
+        else:
+            return HttpResponse(400)
+
 def getticketuser(request):
     if request.method == "GET":
         try:
