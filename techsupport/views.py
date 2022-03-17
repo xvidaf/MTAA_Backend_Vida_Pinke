@@ -108,6 +108,23 @@ def getticketuser(request):
         except:
             return HttpResponse(400)
 
+def getticketadmin(request):
+    if request.method == "GET":
+        try:
+            id = request.GET.get('ticketid', '')
+            data = list(Tickets.objects.filter(pk=id).values())
+            data[0]['createdBy_id'] = list(User.objects.filter(pk=data[0]['createdBy_id']).values())
+            if data[0]['assignedTo_id']:
+                data[0]['assignedTo_id'] = list(User.objects.filter(pk=data[0]['assignedTo_id']).values())
+            data[0]['deviceType_id'] = list(Devices.objects.filter(pk=data[0]['deviceType_id']).values())
+            if data[0]['solutionVideo_id']:
+                data[0]['solutionVideo_id'] = list(Media.objects.filter(pk=data[0]['solutionVideo_id']).values())
+            if data[0]['image_id']:
+                data[0]['image_id'] = list(Media.objects.filter(pk=data[0]['image_id']).values())
+            return JsonResponse(data, safe=False)
+        except:
+            return HttpResponse(400)
+
 def gettickets(request):
     if request.method == "GET":
         try:
@@ -124,6 +141,25 @@ def gettickets(request):
             return JsonResponse(data, safe=False)
         except:
             return HttpResponse(400)
+
+def getmessages(request):
+    if request.method == "GET":
+        try:
+            data = list(ChatMessages.objects.all().values())
+            for x in data:
+                if x['sender_id'] is int(request.GET['userid']):
+                    x['from'] = User.objects.get(pk=x['sender_id']).email
+                    x['to'] = User.objects.get(pk=x['reciever_id']).email
+                    x.pop('sender_id', None)
+                    x.pop('reciever_id', None)
+                    x.pop('id', None)
+                    x.pop('ticketid_id', None)
+                else:
+                    data.remove(x)
+            return JsonResponse(data, safe=False)
+        except:
+            return HttpResponse(400)
+
 @csrf_exempt
 def deleteTicket(request):
     if request.method == "DELETE":
