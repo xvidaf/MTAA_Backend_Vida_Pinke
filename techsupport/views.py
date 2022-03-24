@@ -13,6 +13,8 @@ import secrets
 # ticketID is optional and should be used when determining whether the user has access to a requested ticket
 # type is optional and is used to check whether the user is of the required usertype
 # For example of use check getTicketUser
+# You get the token by using the login endpoint
+# Expiration not implemented, but should be simple to do if needed
 # If treba viac kontrol:
 #   povedz mi
 def checkPermissions(authToken, ticketID=None, type=None):
