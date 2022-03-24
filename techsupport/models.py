@@ -5,6 +5,7 @@ class User(models.Model):
     password = models.CharField('Password of the user', max_length=100, null=False)
     usertype = models.CharField('Type of the user', max_length=10, null=False)
     lastlogin = models.DateTimeField('Last login date', max_length=10, null=False)
+    token = models.CharField('Last valid token', max_length=100, null=True)
 
     def __str__(self):
         return self.email

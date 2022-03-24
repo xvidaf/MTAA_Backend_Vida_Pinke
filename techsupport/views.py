@@ -5,6 +5,30 @@ from techsupport.models import User, ChatMessages, Tickets, Devices, Media
 import json
 from django.views.decorators.csrf import csrf_exempt
 from django.forms.models import model_to_dict
+from django.db import models as dmodels
+import secrets
+
+# Function to check for permissions
+# authToken is required and should contain the token the user provided
+# ticketID is optional and should be used when determining whether the user has access to a requested ticket
+# type is optional and is used to check whether the user is of the required usertype
+# For example of use check getTicketUser
+# If treba viac kontrol:
+#   povedz mi
+def checkPermissions(authToken, ticketID=None, type=None):
+    try:
+        authToken = authToken.replace("Bearer ", '')
+        authenticated= User.objects.get(token= authToken)
+        if ticketID:
+            if authenticated.usertype == "user":
+                Tickets.objects.get(id=ticketID, createdBy=authenticated.id)
+            elif authenticated.usertype == "admin":
+                Tickets.objects.get(id=ticketID, assignedTo=authenticated.id)
+        if type:
+            User.objects.get(token=authToken, usertype=type)
+        return True
+    except:
+        return False
 
 @csrf_exempt
 def register(request):
@@ -50,8 +74,13 @@ def login(request):
             try:
                 authenticated = User.objects.get(email=mail, password=pwd)
                 authenticated.lastlogin = datetime.now()
+                #We create a token for the user
+                loginToken = secrets.token_hex(20)
+                authenticated.token = loginToken
                 authenticated.save()
-                return HttpResponse(200)
+                #return HttpResponse(200)
+                #We return the token to the requester
+                return JsonResponse({"token": loginToken}, safe=False)
             except:
                 return HttpResponse(400)
         else:
@@ -147,20 +176,24 @@ def createticket(request):
 
 def getticketuser(request):
     if request.method == "GET":
-        try:
-            id = request.GET.get('ticketid', '')
-            data = list(Tickets.objects.filter(pk=id).values())
-            data[0]['createdBy_id'] = list(User.objects.filter(pk=data[0]['createdBy_id']).values())
-            if data[0]['assignedTo_id']:
-                data[0]['assignedTo_id'] = list(User.objects.filter(pk=data[0]['assignedTo_id']).values())
-            data[0]['deviceType_id'] = list(Devices.objects.filter(pk=data[0]['deviceType_id']).values())
-            if data[0]['solutionVideo_id']:
-                data[0]['solutionVideo_id'] = list(Media.objects.filter(pk=data[0]['solutionVideo_id']).values())
-            if data[0]['image_id']:
-                data[0]['image_id'] = list(Media.objects.filter(pk=data[0]['image_id']).values())
-            return JsonResponse(data, safe=False)
-        except:
-            return HttpResponse(400)
+        #We check if the requester has the required permissions
+        if checkPermissions(request.META.get('HTTP_AUTHORIZATION'), request.GET.get('ticketid', ''), "user"):
+            try:
+                id = request.GET.get('ticketid', '')
+                data = list(Tickets.objects.filter(pk=id).values())
+                data[0]['createdBy_id'] = list(User.objects.filter(pk=data[0]['createdBy_id']).values())
+                if data[0]['assignedTo_id']:
+                    data[0]['assignedTo_id'] = list(User.objects.filter(pk=data[0]['assignedTo_id']).values())
+                data[0]['deviceType_id'] = list(Devices.objects.filter(pk=data[0]['deviceType_id']).values())
+                if data[0]['solutionVideo_id']:
+                    data[0]['solutionVideo_id'] = list(Media.objects.filter(pk=data[0]['solutionVideo_id']).values())
+                if data[0]['image_id']:
+                    data[0]['image_id'] = list(Media.objects.filter(pk=data[0]['image_id']).values())
+                return JsonResponse(data, safe=False)
+            except:
+                return HttpResponse(400)
+        else:
+            return HttpResponse(401)
 
 def getticketadmin(request):
     if request.method == "GET":
