@@ -66,6 +66,8 @@ def register(request):
                 return HttpResponse(400)
         else:
             return HttpResponse(400)
+    else:
+        return HttpResponse(400)
 
 @csrf_exempt
 def login(request):
@@ -96,6 +98,8 @@ def login(request):
                 return HttpResponse(400)
         else:
             return HttpResponse(400)
+    else:
+        return HttpResponse(400)
 
 @csrf_exempt
 def sendmessage(request):
@@ -136,6 +140,8 @@ def sendmessage(request):
                 return HttpResponse(400)
         else:
             return HttpResponse(400)
+    else:
+        return HttpResponse(400)
 
 @csrf_exempt
 def createticket(request):
@@ -195,6 +201,8 @@ def createticket(request):
                 return HttpResponse(400)
         else:
             return HttpResponse(400)
+    else:
+        return HttpResponse(400)
 
 def getticketuser(request):
     if request.method == "GET":
@@ -216,6 +224,8 @@ def getticketuser(request):
                 return HttpResponse(400)
         else:
             return HttpResponse(401)
+    else:
+        return HttpResponse(400)
 
 def getticketadmin(request):
     if request.method == "GET":
@@ -237,6 +247,8 @@ def getticketadmin(request):
                 return HttpResponse(400)
         else:
             return HttpResponse(401)
+    else:
+        return HttpResponse(400)
 
 def gettickets(request):
     if request.method == "GET":
@@ -258,6 +270,8 @@ def gettickets(request):
                 return HttpResponse(400)
         else:
             return HttpResponse(401)
+    else:
+        return HttpResponse(400)
 
 def getmessages(request):
     if request.method == "GET":
@@ -280,6 +294,8 @@ def getmessages(request):
                 return HttpResponse(400)
         else:
             return HttpResponse(401)
+    else:
+        return HttpResponse(400)
 
 @csrf_exempt
 def updateticket(request):
@@ -326,6 +342,8 @@ def updateticket(request):
                 return HttpResponse(204)
             except:
                 return HttpResponse(400)
+    else:
+        return HttpResponse(400)
 
 @csrf_exempt
 def deleteTicket(request):
@@ -340,3 +358,5 @@ def deleteTicket(request):
                 return HttpResponse(400)
         else:
             return HttpResponse(401)
+    else:
+        return HttpResponse(400)
