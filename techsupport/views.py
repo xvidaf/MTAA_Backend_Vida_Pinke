@@ -17,7 +17,7 @@ import secrets
 # Expiration not implemented, but should be simple to do if needed
 # If treba viac kontrol:
 #   povedz mi
-def checkPermissions(authToken, ticketID=None, type=None):
+def checkPermissions(authToken, ticketID=None, fromID=None, toID=None, type=None):
     try:
         authToken = authToken.replace("Bearer ", '')
         authenticated= User.objects.get(token= authToken)
@@ -28,6 +28,15 @@ def checkPermissions(authToken, ticketID=None, type=None):
                 Tickets.objects.get(id=ticketID, assignedTo=authenticated.id)
         if type:
             User.objects.get(token=authToken, usertype=type)
+
+        if fromID:
+            if int(fromID) == authenticated.id:
+                if authenticated.usertype == "user":
+                    Tickets.objects.get(id=ticketID, createdBy=authenticated.id, assignedTo=toID)
+                elif authenticated.usertype == "admin":
+                    Tickets.objects.get(id=ticketID, assignedTo=authenticated.id, createdBy=toID)
+            else:
+                return False
         return True
     except:
         return False
@@ -92,6 +101,12 @@ def login(request):
 def sendmessage(request):
     if request.method == "POST":
         j = json.loads(request.body)
+        # We check if the requester has the required permissions
+        if checkPermissions(request.META.get('HTTP_AUTHORIZATION'), ticketID=j['ticketid'], fromID=j['from'], toID=j['to']):
+            print("Authenticated")
+        else:
+            return HttpResponse(401)
+
         try:
             to = j['to']
         except:
@@ -126,6 +141,11 @@ def sendmessage(request):
 def createticket(request):
     if request.method == "POST":
         j = json.loads(request.body)
+        # We check if the requester has the required permissions
+        if checkPermissions(request.META.get('HTTP_AUTHORIZATION'), type="user"):
+            print("Authenticated")
+        else:
+            return HttpResponse(401)
 
         try:
             name = j['name']
@@ -133,12 +153,12 @@ def createticket(request):
             name = False
 
         try:
-            device_id = j['device_id']
+            device_id = j['devicetype']
         except:
             device_id = False
 
         try:
-            createdby_id = j['createdby_id']
+            createdby_id = j['createdby']
         except:
             createdby_id = False
 
@@ -179,7 +199,7 @@ def createticket(request):
 def getticketuser(request):
     if request.method == "GET":
         #We check if the requester has the required permissions
-        if checkPermissions(request.META.get('HTTP_AUTHORIZATION'), request.GET.get('ticketid', ''), "user"):
+        if checkPermissions(request.META.get('HTTP_AUTHORIZATION'), ticketID=request.GET.get('ticketid', ''), type="user"):
             try:
                 id = request.GET.get('ticketid', '')
                 data = list(Tickets.objects.filter(pk=id).values())
@@ -199,103 +219,124 @@ def getticketuser(request):
 
 def getticketadmin(request):
     if request.method == "GET":
-        try:
-            id = request.GET.get('ticketid', '')
-            data = list(Tickets.objects.filter(pk=id).values())
-            data[0]['createdBy_id'] = list(User.objects.filter(pk=data[0]['createdBy_id']).values())
-            if data[0]['assignedTo_id']:
-                data[0]['assignedTo_id'] = list(User.objects.filter(pk=data[0]['assignedTo_id']).values())
-            data[0]['deviceType_id'] = list(Devices.objects.filter(pk=data[0]['deviceType_id']).values())
-            if data[0]['solutionVideo_id']:
-                data[0]['solutionVideo_id'] = list(Media.objects.filter(pk=data[0]['solutionVideo_id']).values())
-            if data[0]['image_id']:
-                data[0]['image_id'] = list(Media.objects.filter(pk=data[0]['image_id']).values())
-            return JsonResponse(data, safe=False)
-        except:
-            return HttpResponse(400)
+        #We check if the requester has the required permissions
+        if checkPermissions(request.META.get('HTTP_AUTHORIZATION'), ticketID=request.GET.get('ticketid', ''), type="admin"):
+            try:
+                id = request.GET.get('ticketid', '')
+                data = list(Tickets.objects.filter(pk=id).values())
+                data[0]['createdBy_id'] = list(User.objects.filter(pk=data[0]['createdBy_id']).values())
+                if data[0]['assignedTo_id']:
+                    data[0]['assignedTo_id'] = list(User.objects.filter(pk=data[0]['assignedTo_id']).values())
+                data[0]['deviceType_id'] = list(Devices.objects.filter(pk=data[0]['deviceType_id']).values())
+                if data[0]['solutionVideo_id']:
+                    data[0]['solutionVideo_id'] = list(Media.objects.filter(pk=data[0]['solutionVideo_id']).values())
+                if data[0]['image_id']:
+                    data[0]['image_id'] = list(Media.objects.filter(pk=data[0]['image_id']).values())
+                return JsonResponse(data, safe=False)
+            except:
+                return HttpResponse(400)
+        else:
+            return HttpResponse(401)
 
 def gettickets(request):
     if request.method == "GET":
-        try:
-            data = list(Tickets.objects.all().values())
-            for x in data:
-                x['createdBy_id'] = list(User.objects.filter(pk=x['createdBy_id']).values())
-                if x['assignedTo_id']:
-                    x['assignedTo_id'] = list(User.objects.filter(pk=x['assignedTo_id']).values())
-                x['deviceType_id'] = list(Devices.objects.filter(pk=x['deviceType_id']).values())
-                if x['solutionVideo_id']:
-                    x['solutionVideo_id'] = list(Media.objects.filter(pk=x['solutionVideo_id']).values())
-                if x['image_id']:
-                    x['image_id'] = list(Media.objects.filter(pk=x['image_id']).values())
-            return JsonResponse(data, safe=False)
-        except:
-            return HttpResponse(400)
+        #We check if the requester has the required permissions
+        if checkPermissions(request.META.get('HTTP_AUTHORIZATION')):
+            try:
+                data = list(Tickets.objects.all().values())
+                for x in data:
+                    x['createdBy_id'] = list(User.objects.filter(pk=x['createdBy_id']).values())
+                    if x['assignedTo_id']:
+                        x['assignedTo_id'] = list(User.objects.filter(pk=x['assignedTo_id']).values())
+                    x['deviceType_id'] = list(Devices.objects.filter(pk=x['deviceType_id']).values())
+                    if x['solutionVideo_id']:
+                        x['solutionVideo_id'] = list(Media.objects.filter(pk=x['solutionVideo_id']).values())
+                    if x['image_id']:
+                        x['image_id'] = list(Media.objects.filter(pk=x['image_id']).values())
+                return JsonResponse(data, safe=False)
+            except:
+                return HttpResponse(400)
+        else:
+            return HttpResponse(401)
 
 def getmessages(request):
     if request.method == "GET":
-        try:
-            data = list(ChatMessages.objects.all().values())
-            for x in data:
-                if x['sender_id'] is int(request.GET['userid']):
-                    x['from'] = User.objects.get(pk=x['sender_id']).email
-                    x['to'] = User.objects.get(pk=x['reciever_id']).email
-                    x.pop('sender_id', None)
-                    x.pop('reciever_id', None)
-                    x.pop('id', None)
-                    x.pop('ticketid_id', None)
-                else:
-                    data.remove(x)
-            return JsonResponse(data, safe=False)
-        except:
-            return HttpResponse(400)
+        #We check if the requester has the required permissions
+        if checkPermissions(request.META.get('HTTP_AUTHORIZATION'), ticketID=request.GET.get('ticketid', '')):
+            try:
+                data = list(ChatMessages.objects.all().values())
+                msgs = []
+                for x in data:
+                    if x['ticketid_id'] == int(request.GET['ticketid']):
+                        x['from'] = User.objects.get(pk=x['sender_id']).email
+                        x['to'] = User.objects.get(pk=x['reciever_id']).email
+                        x.pop('sender_id', None)
+                        x.pop('reciever_id', None)
+                        x.pop('id', None)
+                        x.pop('ticketid_id', None)
+                        msgs.append(x)
+                return JsonResponse(msgs, safe=False)
+            except:
+                return HttpResponse(400)
+        else:
+            return HttpResponse(401)
 
 @csrf_exempt
 def updateticket(request):
     if request.method == "PUT":
-        try:
-            j = json.loads(request.body)
             try:
-                ticketid = j['ticketid']
-            except:
-                ticketid = False
+                j = json.loads(request.body)
+                # We check if the requester has the required permissions
+                if checkPermissions(request.META.get('HTTP_AUTHORIZATION'), ticketID=j['ticketid'], type="admin"):
+                    print("Authenticated")
+                else:
+                    return HttpResponse(401)
+                try:
+                    ticketid = j['ticketid']
+                except:
+                    ticketid = False
 
-            try:
-                stage = j['stage']
-            except:
-                stage = False
+                try:
+                    stage = j['stage']
+                except:
+                    stage = False
 
-            try:
-                complete = j['complete']
-            except:
-                complete = False
+                try:
+                    complete = j['complete']
+                except:
+                    complete = False
 
-            try:
-                solutiontext = j['solutiontext']
-            except:
-                solutiontext = False
+                try:
+                    solutiontext = j['solutiontext']
+                except:
+                    solutiontext = False
 
-            try:
-                solutionvideo = j['solutionvideo']
-            except:
-                solutionvideo = False
+                try:
+                    solutionvideo = j['solutionvideo']
+                except:
+                    solutionvideo = False
 
-            ticket = Tickets.objects.get(pk=ticketid)
-            ticket.stage = stage
-            ticket.complete = complete
-            ticket.solutionText = solutiontext
-            if solutionvideo:
-                ticket.solutionVideo = Media.objects.get(pk=solutionvideo)
-            ticket.save()
-            return HttpResponse(204)
-        except:
-            return HttpResponse(400)
+                ticket = Tickets.objects.get(pk=ticketid)
+                ticket.stage = stage
+                ticket.complete = complete
+                ticket.solutionText = solutiontext
+                if solutionvideo:
+                    ticket.solutionVideo = Media.objects.get(pk=solutionvideo)
+                ticket.save()
+                return HttpResponse(204)
+            except:
+                return HttpResponse(400)
 
 @csrf_exempt
 def deleteTicket(request):
     if request.method == "DELETE":
-        try:
-            id = request.GET.get('ticketid', '')
-            Tickets.objects.get(pk=id).delete()
-            return HttpResponse(204)
-        except:
-            return HttpResponse(400)
+        #We check if the requester has the required permissions
+        if checkPermissions(request.META.get('HTTP_AUTHORIZATION'), ticketID=request.GET.get('ticketid', ''), type="user"):
+            try:
+                id = request.GET.get('ticketid', '')
+                Tickets.objects.get(pk=id).delete()
+                return HttpResponse(204)
+            except:
+                return HttpResponse(400)
+        else:
+            return HttpResponse(401)
