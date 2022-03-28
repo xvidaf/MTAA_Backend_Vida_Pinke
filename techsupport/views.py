@@ -341,7 +341,7 @@ def updateticket(request):
                 ticket.save()
                 return HttpResponse(204)
             except:
-                return HttpResponse(400)
+                return HttpResponse(401)
     else:
         return HttpResponse(400)
 
@@ -358,5 +358,42 @@ def deleteTicket(request):
                 return HttpResponse(400)
         else:
             return HttpResponse(401)
+    else:
+        return HttpResponse(400)
+
+@csrf_exempt
+def insertmedia(request):
+    if request.method == "POST":
+        try:
+            # We check if the requester has the required permissions
+            if checkPermissions(request.META.get('HTTP_AUTHORIZATION'), type="admin"):
+                print("Authenticated")
+            else:
+                return HttpResponse(401)
+
+            try:
+                name = request.POST['name']
+            except:
+                name = False
+
+            try:
+                file = request.FILES['file']
+            except:
+                file = False
+
+            try:
+                isVideo = request.POST['isVideo']
+            except:
+                isVideo = False
+
+            if name and file and isVideo:
+                media = Media(name=name, path=file, isvideo=isVideo)
+                media.save()
+                return HttpResponse(200)
+            else:
+                return HttpResponse(400)
+
+        except:
+            return HttpResponse(400)
     else:
         return HttpResponse(400)
