@@ -18,7 +18,7 @@ import secrets
 # Expiration not implemented, but should be simple to do if needed
 # If treba viac kontrol:
 #   povedz mi
-def checkPermissions(authToken, ticketID=None, fromID=None, toID=None, type=None):
+def checkPermissions(authToken, ticketID=None, fromID=None, toID=None, type=None, createdBy= None):
     try:
         authToken = authToken.replace("Bearer ", '')
         authenticated= User.objects.get(token= authToken)
@@ -37,6 +37,9 @@ def checkPermissions(authToken, ticketID=None, fromID=None, toID=None, type=None
                 elif authenticated.usertype == "admin":
                     Tickets.objects.get(id=ticketID, assignedTo=authenticated.id, createdBy=toID)
             else:
+                return False
+        if createdBy:
+            if authenticated.id != createdBy:
                 return False
         return True
     except:
@@ -149,7 +152,7 @@ def createticket(request):
     if request.method == "POST":
         j = json.loads(request.body)
         # We check if the requester has the required permissions
-        if checkPermissions(request.META.get('HTTP_AUTHORIZATION'), type="user"):
+        if checkPermissions(request.META.get('HTTP_AUTHORIZATION'), type="user", createdBy=j['createdby']):
             print("Authenticated")
         else:
             return HttpResponse(401)
