@@ -6,6 +6,7 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 from django.forms.models import model_to_dict
 from django.db import models as dmodels
+from django.http import FileResponse
 import secrets
 
 # Function to check for permissions
@@ -395,5 +396,22 @@ def insertmedia(request):
 
         except:
             return HttpResponse(400)
+    else:
+        return HttpResponse(400)
+
+def getmedia(request):
+    if request.method == "GET":
+        #We check if the requester has the required permissions
+        if checkPermissions(request.META.get('HTTP_AUTHORIZATION')):
+            try:
+                id = request.GET.get('mediaid', '')
+                data = Media.objects.get(pk=id)
+                img = open(str(data.path), 'rb')
+                response = FileResponse(img)
+                return response
+            except:
+                return HttpResponse(400)
+        else:
+            return HttpResponse(401)
     else:
         return HttpResponse(400)

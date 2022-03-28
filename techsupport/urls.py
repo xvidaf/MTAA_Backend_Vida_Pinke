@@ -14,4 +14,5 @@ urlpatterns = [
     path('updateticket', views.updateticket, name='updateticket'),
     path('deleteticket', views.deleteTicket, name='deleteTicket'),
     path('insertmedia', views.insertmedia, name='insertmedia'),
+    path('getmedia', views.getmedia, name='getmedia'),
 ]
