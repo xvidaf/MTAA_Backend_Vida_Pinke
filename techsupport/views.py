@@ -65,13 +65,13 @@ def register(request):
             try:
                 u = User(email=mail, password=pwd, usertype="user", lastlogin=last_login)
                 u.save()
-                return HttpResponse(200)
+                return HttpResponse(status=200)
             except:
-                return HttpResponse(400)
+                return HttpResponse(status=400)
         else:
-            return HttpResponse(400)
+            return HttpResponse(status=400)
     else:
-        return HttpResponse(400)
+        return HttpResponse(status=400)
 
 @csrf_exempt
 def login(request):
@@ -97,13 +97,15 @@ def login(request):
                 authenticated.save()
                 #return HttpResponse(200)
                 #We return the token to the requester
-                return JsonResponse({"token": loginToken}, safe=False)
+                print(mail)
+                print(pwd)
+                return JsonResponse({"token": loginToken}, safe=False, status=200)
             except:
-                return HttpResponse(400)
+                return HttpResponse(status=400)
         else:
-            return HttpResponse(400)
+            return HttpResponse(status=400)
     else:
-        return HttpResponse(400)
+        return HttpResponse(status=400)
 
 @csrf_exempt
 def sendmessage(request):
@@ -113,7 +115,7 @@ def sendmessage(request):
         if checkPermissions(request.META.get('HTTP_AUTHORIZATION'), ticketID=j['ticketid'], fromID=j['from'], toID=j['to']):
             print("Authenticated")
         else:
-            return HttpResponse(401)
+            return HttpResponse(status=401)
 
         try:
             to = j['to']
@@ -139,13 +141,13 @@ def sendmessage(request):
             try:
                 message = ChatMessages(ticketid=Tickets.objects.get(pk=ticketid), reciever=User.objects.get(pk=to), sender=User.objects.get(pk=fromm), timestamp= datetime.now(), message=message)
                 message.save()
-                return HttpResponse(200)
+                return HttpResponse(status=200)
             except:
-                return HttpResponse(400)
+                return HttpResponse(status=400)
         else:
-            return HttpResponse(400)
+            return HttpResponse(status=400)
     else:
-        return HttpResponse(400)
+        return HttpResponse(status=400)
 
 @csrf_exempt
 def createticket(request):
@@ -155,7 +157,7 @@ def createticket(request):
         if checkPermissions(request.META.get('HTTP_AUTHORIZATION'), type="user", createdBy=j['createdby']):
             print("Authenticated")
         else:
-            return HttpResponse(401)
+            return HttpResponse(status=401)
 
         try:
             name = j['name']
@@ -192,21 +194,21 @@ def createticket(request):
                 ticket = Tickets(name=name, deviceType=Devices.objects.get(pk=device_id), createdBy=User.objects.get(pk=createdby_id),
                                        issueType= issuetype, description=description, stage=1, complete=False, image=Media.objects.get(pk=image_id))
                 ticket.save()
-                return HttpResponse(200)
+                return HttpResponse(status=200)
             except:
-                return HttpResponse(400)
+                return HttpResponse(status=400)
         elif name and device_id and createdby_id and issuetype and description:
             try:
                 ticket = Tickets(name=name, deviceType=Devices.objects.get(pk=device_id), createdBy=User.objects.get(pk=createdby_id),
                                        issueType= issuetype, description=description, stage=1, complete=False)
                 ticket.save()
-                return HttpResponse(200)
+                return HttpResponse(status=200)
             except:
-                return HttpResponse(400)
+                return HttpResponse(status=400)
         else:
-            return HttpResponse(400)
+            return HttpResponse(status=400)
     else:
-        return HttpResponse(400)
+        return HttpResponse(status=400)
 
 def getticketuser(request):
     if request.method == "GET":
@@ -225,11 +227,11 @@ def getticketuser(request):
                     data[0]['image_id'] = list(Media.objects.filter(pk=data[0]['image_id']).values())
                 return JsonResponse(data, safe=False)
             except:
-                return HttpResponse(400)
+                return HttpResponse(status=400)
         else:
-            return HttpResponse(401)
+            return HttpResponse(status=401)
     else:
-        return HttpResponse(400)
+        return HttpResponse(status=400)
 
 def getticketadmin(request):
     if request.method == "GET":
@@ -248,11 +250,11 @@ def getticketadmin(request):
                     data[0]['image_id'] = list(Media.objects.filter(pk=data[0]['image_id']).values())
                 return JsonResponse(data, safe=False)
             except:
-                return HttpResponse(400)
+                return HttpResponse(status=400)
         else:
-            return HttpResponse(401)
+            return HttpResponse(status=401)
     else:
-        return HttpResponse(400)
+        return HttpResponse(status=400)
 
 def gettickets(request):
     if request.method == "GET":
@@ -271,11 +273,11 @@ def gettickets(request):
                         x['image_id'] = list(Media.objects.filter(pk=x['image_id']).values())
                 return JsonResponse(data, safe=False)
             except:
-                return HttpResponse(400)
+                return HttpResponse(status=400)
         else:
-            return HttpResponse(401)
+            return HttpResponse(status=401)
     else:
-        return HttpResponse(400)
+        return HttpResponse(status=400)
 
 def getmessages(request):
     if request.method == "GET":
@@ -295,11 +297,11 @@ def getmessages(request):
                         msgs.append(x)
                 return JsonResponse(msgs, safe=False)
             except:
-                return HttpResponse(400)
+                return HttpResponse(status=400)
         else:
-            return HttpResponse(401)
+            return HttpResponse(status=401)
     else:
-        return HttpResponse(400)
+        return HttpResponse(status=400)
 
 @csrf_exempt
 def updateticket(request):
@@ -310,7 +312,7 @@ def updateticket(request):
                 if checkPermissions(request.META.get('HTTP_AUTHORIZATION'), ticketID=j['ticketid'], type="admin"):
                     print("Authenticated")
                 else:
-                    return HttpResponse(401)
+                    return HttpResponse(status=401)
                 try:
                     ticketid = j['ticketid']
                 except:
@@ -343,11 +345,11 @@ def updateticket(request):
                 if solutionvideo:
                     ticket.solutionVideo = Media.objects.get(pk=solutionvideo)
                 ticket.save()
-                return HttpResponse(204)
+                return HttpResponse(status=204)
             except:
-                return HttpResponse(401)
+                return HttpResponse(status=401)
     else:
-        return HttpResponse(400)
+        return HttpResponse(status=400)
 
 @csrf_exempt
 def deleteTicket(request):
@@ -357,13 +359,13 @@ def deleteTicket(request):
             try:
                 id = request.GET.get('ticketid', '')
                 Tickets.objects.get(pk=id).delete()
-                return HttpResponse(204)
+                return HttpResponse(status=204)
             except:
-                return HttpResponse(400)
+                return HttpResponse(status=400)
         else:
-            return HttpResponse(401)
+            return HttpResponse(status=401)
     else:
-        return HttpResponse(400)
+        return HttpResponse(status=400)
 
 @csrf_exempt
 def insertmedia(request):
@@ -373,7 +375,7 @@ def insertmedia(request):
             if checkPermissions(request.META.get('HTTP_AUTHORIZATION'), type="admin"):
                 print("Authenticated")
             else:
-                return HttpResponse(401)
+                return HttpResponse(status=401)
 
             try:
                 name = request.POST['name']
@@ -393,14 +395,14 @@ def insertmedia(request):
             if name and file and isVideo:
                 media = Media(name=name, path=file, isvideo=isVideo)
                 media.save()
-                return HttpResponse(200)
+                return HttpResponse(status=200)
             else:
-                return HttpResponse(400)
+                return HttpResponse(status=400)
 
         except:
-            return HttpResponse(400)
+            return HttpResponse(status=400)
     else:
-        return HttpResponse(400)
+        return HttpResponse(status=400)
 
 def getmedia(request):
     if request.method == "GET":
@@ -413,8 +415,8 @@ def getmedia(request):
                 response = FileResponse(img)
                 return response
             except:
-                return HttpResponse(400)
+                return HttpResponse(status=400)
         else:
-            return HttpResponse(401)
+            return HttpResponse(status=401)
     else:
-        return HttpResponse(400)
+        return HttpResponse(status=400)
