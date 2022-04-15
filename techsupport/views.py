@@ -22,6 +22,7 @@ def checkPermissions(authToken, ticketID=None, fromID=None, toID=None, type=None
     try:
         authToken = authToken.replace("Bearer ", '')
         authenticated= User.objects.get(token= authToken)
+        print(authenticated.id, createdBy)
         if ticketID:
             if authenticated.usertype == "user":
                 Tickets.objects.get(id=ticketID, createdBy=authenticated.id)
@@ -39,7 +40,7 @@ def checkPermissions(authToken, ticketID=None, fromID=None, toID=None, type=None
             else:
                 return False
         if createdBy:
-            if authenticated.id != createdBy:
+            if authenticated.id != int(createdBy):
                 return False
         return True
     except:
@@ -262,6 +263,34 @@ def gettickets(request):
         if checkPermissions(request.META.get('HTTP_AUTHORIZATION')):
             try:
                 data = list(Tickets.objects.all().values())
+                for x in data:
+                    x['createdBy_id'] = list(User.objects.filter(pk=x['createdBy_id']).values())
+                    if x['assignedTo_id']:
+                        x['assignedTo_id'] = list(User.objects.filter(pk=x['assignedTo_id']).values())
+                    x['deviceType_id'] = list(Devices.objects.filter(pk=x['deviceType_id']).values())
+                    if x['solutionVideo_id']:
+                        x['solutionVideo_id'] = list(Media.objects.filter(pk=x['solutionVideo_id']).values())
+                    if x['image_id']:
+                        x['image_id'] = list(Media.objects.filter(pk=x['image_id']).values())
+                print(data)
+                return JsonResponse(data, safe=False)
+            except:
+                return HttpResponse(status=400)
+        else:
+            return HttpResponse(status=401)
+    else:
+        return HttpResponse(status=400)
+
+def getticketsbyID(request):
+    if request.method == "GET":
+        #We check if the requester has the required permissions
+        if checkPermissions(request.META.get('HTTP_AUTHORIZATION'), createdBy=request.GET.get('userid', '')):
+            try:
+                user = User.objects.get(pk=request.GET.get('userid', ''))
+                if user.usertype == 'user':
+                    data = list(Tickets.objects.filter(createdBy=user.id).values())
+                elif user.usertype == 'admin':
+                    data = list(Tickets.objects.filter(assignedTo=user.id).values())
                 for x in data:
                     x['createdBy_id'] = list(User.objects.filter(pk=x['createdBy_id']).values())
                     if x['assignedTo_id']:
