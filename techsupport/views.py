@@ -166,7 +166,8 @@ def createticket(request):
             name = False
 
         try:
-            device_id = j['devicetype']
+            device = j['devicetype']
+            device_id = Devices.objects.get(name=device).id
         except:
             device_id = False
 
@@ -274,6 +275,25 @@ def gettickets(request):
                         x['image_id'] = list(Media.objects.filter(pk=x['image_id']).values())
                 print(data)
                 return JsonResponse(data, safe=False)
+            except:
+                return HttpResponse(status=400)
+        else:
+            return HttpResponse(status=401)
+    else:
+        return HttpResponse(status=400)
+
+def getdevices(request):
+    if request.method == "GET":
+        #We check if the requester has the required permissions
+        if checkPermissions(request.META.get('HTTP_AUTHORIZATION')):
+            try:
+                data = list(Devices.objects.all().values())
+                msgs = []
+                for x in data:
+                    x.pop('id', None)
+                    x.pop('image_id', None)
+                    msgs.append(x)
+                return JsonResponse(msgs, safe=False)
             except:
                 return HttpResponse(status=400)
         else:

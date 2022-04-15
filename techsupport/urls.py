@@ -10,6 +10,7 @@ urlpatterns = [
     path('getticketuser', views.getticketuser, name='getticketuser'),
     path('getticketadmin', views.getticketadmin, name='getticketadmin'),
     path('gettickets', views.gettickets, name='gettickets'),
+    path('getdevices', views.getdevices, name='getdevices'),
     path('getticketsbyID', views.getticketsbyID, name='getticketsbyID'),
     path('getmessages', views.getmessages, name='getmessages'),
     path('updateticket', views.updateticket, name='updateticket'),
