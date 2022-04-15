@@ -99,7 +99,7 @@ def login(request):
                 #We return the token to the requester
                 print(mail)
                 print(pwd)
-                return JsonResponse({"token": loginToken}, safe=False, status=200)
+                return JsonResponse({"token": loginToken, "usertype": authenticated.usertype, "user_id": authenticated.id}, safe=False, status=200)
             except:
                 return HttpResponse(status=400)
         else:
@@ -271,6 +271,7 @@ def gettickets(request):
                         x['solutionVideo_id'] = list(Media.objects.filter(pk=x['solutionVideo_id']).values())
                     if x['image_id']:
                         x['image_id'] = list(Media.objects.filter(pk=x['image_id']).values())
+                print(data)
                 return JsonResponse(data, safe=False)
             except:
                 return HttpResponse(status=400)
@@ -288,8 +289,10 @@ def getmessages(request):
                 msgs = []
                 for x in data:
                     if x['ticketid_id'] == int(request.GET['ticketid']):
-                        x['from'] = User.objects.get(pk=x['sender_id']).email
-                        x['to'] = User.objects.get(pk=x['reciever_id']).email
+                        #x['from'] = User.objects.get(pk=x['sender_id']).email
+                        #x['to'] = User.objects.get(pk=x['reciever_id']).email
+                        x['from'] = User.objects.get(pk=x['sender_id']).id
+                        x['to'] = User.objects.get(pk=x['reciever_id']).id
                         x.pop('sender_id', None)
                         x.pop('reciever_id', None)
                         x.pop('id', None)
