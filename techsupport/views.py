@@ -361,7 +361,7 @@ def updateticket(request):
             try:
                 j = json.loads(request.body)
                 # We check if the requester has the required permissions
-                if checkPermissions(request.META.get('HTTP_AUTHORIZATION'), ticketID=j['ticketid'], type="admin"):
+                if checkPermissions(request.META.get('HTTP_AUTHORIZATION'), type="admin"):
                     print("Authenticated")
                 else:
                     return HttpResponse(status=401)
@@ -376,26 +376,43 @@ def updateticket(request):
                     stage = False
 
                 try:
+                    solutionImage = j['solutionimage']
+                except:
+                    solutionImage = False
+                try:
                     complete = j['complete']
                 except:
                     complete = False
-
                 try:
                     solutiontext = j['solutiontext']
                 except:
                     solutiontext = False
 
                 try:
+                    assignedTo = j['assignedTo']
+                except:
+                    assignedTo = False
+
+                try:
                     solutionvideo = j['solutionvideo']
                 except:
                     solutionvideo = False
-
                 ticket = Tickets.objects.get(pk=ticketid)
-                ticket.stage = stage
-                ticket.complete = complete
-                ticket.solutionText = solutiontext
+                if stage:
+                    ticket.stage = int(stage) + 1
+                if complete:
+                    if complete == "True":
+                        ticket.complete = True
+                    else:
+                        ticket.complete = False
+                if solutiontext:
+                    ticket.solutionText = solutiontext
                 if solutionvideo:
                     ticket.solutionVideo = Media.objects.get(pk=solutionvideo)
+                if solutionImage:
+                    ticket.image = Media.objects.get(pk=int(solutionImage))
+                if assignedTo:
+                    ticket.assignedTo = User.objects.get(pk=assignedTo)
                 ticket.save()
                 return HttpResponse(status=204)
             except:
@@ -459,16 +476,14 @@ def insertmedia(request):
 def getmedia(request):
     if request.method == "GET":
         #We check if the requester has the required permissions
-        if checkPermissions(request.META.get('HTTP_AUTHORIZATION')):
-            try:
-                id = request.GET.get('mediaid', '')
-                data = Media.objects.get(pk=id)
-                img = open(str(data.path), 'rb')
-                response = FileResponse(img)
-                return response
-            except:
-                return HttpResponse(status=400)
-        else:
-            return HttpResponse(status=401)
+        try:
+            id = request.GET.get('mediaid', '')
+            data = Media.objects.get(pk=id)
+            img = open(str(data.path), 'rb')
+            response = FileResponse(img)
+            return HttpResponse(img.read(), content_type="image/jpeg")
+            return response
+        except:
+            return HttpResponse(status=400)
     else:
         return HttpResponse(status=400)
