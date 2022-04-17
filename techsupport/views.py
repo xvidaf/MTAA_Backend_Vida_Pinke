@@ -462,6 +462,10 @@ def insertmedia(request):
                 isVideo = False
 
             if name and file and isVideo:
+                if isVideo == 'true':
+                    isVideo = True
+                else:
+                    isVideo = False
                 media = Media(name=name, path=file, isvideo=isVideo)
                 media.save()
                 return HttpResponse(status=200)

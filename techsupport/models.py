@@ -11,7 +11,7 @@ class User(models.Model):
         return self.email
 
 class Media(models.Model):
-    name = models.CharField('Name of the media', max_length=100, null=False)
+    name = models.CharField('Name of the media', max_length=10000, null=False)
     path = models.FileField('Path to the media', upload_to='files/', max_length=255, null=False)
     isvideo = models.BooleanField(null=False)
 
