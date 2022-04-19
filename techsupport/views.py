@@ -190,7 +190,7 @@ def createticket(request):
             image_id = j['image_id']
         except:
             image_id = False
-
+        print(name, device_id, createdby_id, description, issuetype)
         if name and device_id and createdby_id and issuetype and description and image_id:
             try:
                 ticket = Tickets(name=name, deviceType=Devices.objects.get(pk=device_id), createdBy=User.objects.get(pk=createdby_id),
@@ -468,7 +468,7 @@ def insertmedia(request):
                     isVideo = False
                 media = Media(name=name, path=file, isvideo=isVideo)
                 media.save()
-                return HttpResponse(status=200)
+                return JsonResponse({'imageID' : media.pk},status=200)
             else:
                 return HttpResponse(status=400)
 
